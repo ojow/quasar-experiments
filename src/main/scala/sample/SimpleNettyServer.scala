@@ -20,10 +20,10 @@ class SimpleNettyServer(reqHandler: HttpRequest => String) {
     val workerGroup = new NioEventLoopGroup()
     try {
       val b = new ServerBootstrap()
-      b.option(ChannelOption.SO_BACKLOG, Integer.valueOf(1024))
+      b.option(ChannelOption.SO_BACKLOG, Integer.valueOf(10240))
       b.group(bossGroup, workerGroup).
         channel(classOf[NioServerSocketChannel]).
-        handler(new LoggingHandler(LogLevel.INFO)).
+        //handler(new LoggingHandler(LogLevel.INFO)).
         childHandler(new ChannelInitializer[SocketChannel] {
           override def initChannel(ch: SocketChannel): Unit = {
             val p = ch.pipeline()
@@ -38,7 +38,6 @@ class SimpleNettyServer(reqHandler: HttpRequest => String) {
                   if (HttpHeaders.is100ContinueExpected(req)) {
                     ctx.writeAndFlush(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE))
                   }
-                  println("Running async")
                   fiber {
                     val keepAlive = HttpHeaders.isKeepAlive(req)
                     val response = new DefaultFullHttpResponse(HTTP_1_1, OK,
